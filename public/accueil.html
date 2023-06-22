@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Success Page</title>
+</head>
+<body>
+  <h1>Login Successful</h1>
+  <p>Welcome to the member's area!</p>
+  
+  <script>
+    // Wait for the page to load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if a token is present in the URL
+      var urlParams = new URLSearchParams(window.location.search);
+      var token = urlParams.get('token');
+      
+      // Redirect if the token is missing or invalid
+      if (!token) {
+        window.location.href = 'index.html';  
+      }
+    });
+  </script>
+</body>
+</html>
+

@@ -2,8 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql');
+const crypto = require('crypto');
+const cors = require('cors'); // Added
 
 const app = express();
+app.use(express.static('public'));
+app.use(cors()); // Added
+
+function MD5(string) {
+  return crypto.createHash('md5').update(string).digest('hex');
+}
 
 // Middleware pour parser les requêtes JSON
 app.use(bodyParser.json());
@@ -28,17 +36,15 @@ connection.connect((err) => {
   }
 });
 
-app.post('/test', (req, res) => {
-  res.json({ message: 'ok' });
-});
-
 // Route d'inscription
-app.post('/signup', (req, res) => {
+app.post('/register', (req, res) => {
   // Récupérer les informations d'inscription depuis le corps de la requête
-  const { username, password } = req.body;
-  
+  const username = req.query.username;
+  const password = req.query.password;
+  const hashedPassword = MD5(password);
+
   // Vérifier si l'utilisateur existe déjà dans la base de données
-  const checkUserQuery = 'SELECT * FROM Utilisateurs WHERE username = ?';
+  const checkUserQuery = 'SELECT * FROM utilisateurs WHERE identifiant = ?';
   connection.query(checkUserQuery, [username], (err, results) => {
     if (err) {
       console.error('Erreur lors de la vérification de l\'utilisateur:', err);
@@ -47,13 +53,13 @@ app.post('/signup', (req, res) => {
       res.status(409).json({ message: 'Cet utilisateur existe déjà' });
     } else {
       // Insérer le nouvel utilisateur dans la base de données
-      const insertUserQuery = 'INSERT INTO Utilisateurs (username, password) VALUES (?, ?)';
-      connection.query(insertUserQuery, [username, password], (err, results) => {
+      const insertUserQuery = 'INSERT INTO utilisateurs (identifiant, MotDePasse, Rang) VALUES (?, ?, 1)';
+      connection.query(insertUserQuery, [username, hashedPassword], (err, results) => {
         if (err) {
           console.error('Erreur lors de l\'inscription de l\'utilisateur:', err);
           res.status(500).json({ message: 'Une erreur s\'est produite' });
         } else {
-          res.json({ message: 'Inscription réussie' });
+          res.status(200).json('Inscription réussie, vous pouvez maintenant utilisez vos identifiants pour vous connecter'); // Return 200 for success
         }
       });
     }
@@ -61,27 +67,42 @@ app.post('/signup', (req, res) => {
 });
 
 // Route d'authentification
-app.post('/login', (req, res) => {
-  // Récupérer les informations d'identification depuis le corps de la requête
-  const { username, password } = req.body;
-  
-  // Vérifier les informations d'identification dans la base de données
-  const checkCredentialsQuery = 'SELECT * FROM Utilisateurs WHERE username = ? AND password = ?';
-  connection.query(checkCredentialsQuery, [username, password], (err, results) => {
+app.get('/login', (req, res) => {
+  const username = req.query.username;
+  const password = req.query.password;
+  const hashedPassword = MD5(password);
+
+  const query = `SELECT * FROM utilisateurs WHERE identifiant = ? AND MotDePasse = ?`;
+  connection.query(query, [username, hashedPassword], (err, results) => {
     if (err) {
-      console.error('Erreur lors de la vérification des informations d\'identification:', err);
-      res.status(500).json({ message: 'Une erreur s\'est produite' });
-    } else if (results.length === 0) {
-      res.status(401).json({ message: 'Identifiants invalides' });
-    } else {
-      // Générer un token d'authentification
-      const token = jwt.sign({ username }, secretKey);
+      console.error('Error executing SQL query:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    // Check if the login credentials are valid
+    if (results.length > 0) {
+      const token = jwt.sign({ username }, 'audir8');
+      const userId = results[0].idUtilisateur; // Assuming the user ID field is named 'id'
       
-      // Répondre avec le token
-      res.json({ token });
+      // Update the token field in the database for the logged-in user
+      const updateQuery = 'UPDATE utilisateurs SET token = ? WHERE idUtilisateur = ?';
+      connection.query(updateQuery, [token, userId], (updateErr, updateResult) => {
+        if (updateErr) {
+          console.error('Error updating token:', updateErr);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+        
+        res.json({ token }); // Send the token as JSON response
+      });
+    } else {
+      console.log("login mauvais");
+      res.send('Invalid login credentials!');
     }
   });
 });
+
 
 // Routes pour les fonctionnalités protégées par l'authentification
 
