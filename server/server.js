@@ -39,7 +39,7 @@ connection.connect((err) => {
 // Route d'inscription
 app.post('/register', (req, res) => {
   // Récupérer les informations d'inscription depuis le corps de la requête
-  const username = req.query.username;
+  const username = req.query.username; 
   const password = req.query.password;
   const hashedPassword = MD5(password);
 
@@ -120,8 +120,11 @@ app.post('/artistes', authenticateToken, (req, res) => {
 
 // Exemple de route pour lister les artistes-créateurs de Captchat
 app.get('/artistes', (req, res) => {
-  // Récupérer les artistes depuis la base de données (code à ajouter)
-  // Utilisez la connexion à la base de données "connection" pour exécuter les requêtes
+  // Récupérer les artistes depuis la base de données
+    const checkUserQuery = 'SELECT * FROM utilisateurs';
+    connection.query(checkUserQuery, [username], (err, results) => {
+      
+    });
   
   // Répondre avec la liste des artistes
   // res.json({ artistes: [...] });

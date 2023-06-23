@@ -6,8 +6,28 @@
 <body>
   <h1>Login Successful</h1>
   <p>Welcome to the member's area!</p>
-  
+  <button type="button" class="btn btn-primary" onclick="voirArtistes()">Voir les artistes</button>
+  <button type="button" class="btn btn-primary">Voir les thèmes</button>
+  <button type="button" class="btn btn-primary">Voir les jeux d'images</button>
   <script>
+    function voirArtistes() {
+    var xhttp = new XMLHttpRequest();
+    var url = `http://localhost:3000/voir?categorie=${categorie}`;
+    xhttp.open("GET", url, true);
+    xhttp.send();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          var response = JSON.parse(this.responseText);
+          var token = response.token;
+          // Redirect to accueil.html with the token
+          window.location.href = `public/accueil.html?token=${token}`;
+        } else {
+          document.getElementById("demo").innerHTML = 'Error: ' + this.status;
+        }
+      }
+    };
+  }
     // Wait for the page to load
     document.addEventListener('DOMContentLoaded', function() {
       // Check if a token is present in the URL
