@@ -7,6 +7,10 @@
     .container {
       margin-top: 50px;
     }
+    .action-icon {
+      cursor: pointer;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -31,14 +35,18 @@
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            //Reponse = ce que la route renvoie
             var response = JSON.parse(this.responseText);
             var contentContainer = document.getElementById("content");
 
-            // Generate table HTML
-            var tableHTML = '<table class="table"><thead><tr><th>' + categorie + '</th></tr></thead><tbody>';
+            var tableHTML = '<table class="table"><thead><tr><th>' + categorie + '</th><th>Actions</th></tr></thead><tbody>';
             for (var i = 0; i < response.length; i++) {
-              tableHTML += '<tr><td>' + response[i] + '</td></tr>';
+              var item = response[i];
+              var itemName = item.Identifiant;
+              tableHTML += '<tr><td>' + itemName + '</td><td>' +
+                '<img src="img/bin.jpg" class="action-icon" onclick="deleteAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
+                '<img src="crayon.png" class="action-icon" onclick="modifyAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
+                '<button class="log-button" onclick="logIndex(' + item.idUtilisateur + ')">Log Index</button>' +
+                '</td></tr>';
             }
             tableHTML += '</tbody></table>';
 
@@ -50,13 +58,34 @@
       };
     }
 
-    // Wait for the page to load
+    function deleteAll(categorie, index) {
+      var xhttp = new XMLHttpRequest();
+      var url = `http://localhost:3000/deleteAll?categorie=${categorie}&id=${index}`;
+      xhttp.open("DELETE", url, true);
+      xhttp.send();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            alert('Row deleted successfully');
+            getAll(categorie);
+          } else {
+            document.getElementById("demo").innerHTML = 'Error: ' + this.status;
+          }
+        }
+      };
+    }
+
+    function modifyAll(categorie, index) {
+      window.location.href = 'http://localhost:3000/modifyAll?categorie=' + categorie + '&id=' + index;
+    }
+
+    function logIndex(index) {
+      console.log("Clicked on row index:", index);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if a token is present in the URL
       var urlParams = new URLSearchParams(window.location.search);
       var token = urlParams.get('token');
-
-      // Redirect if the token is missing or invalid
       if (!token) {
         window.location.href = 'index.html';
       }

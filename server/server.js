@@ -106,31 +106,12 @@ app.get('/login', (req, res) => {
 
 // Routes pour les fonctionnalités protégées par l'authentification
 
-// Exemple de route pour créer un artiste-créateur de Captchat
-app.post('/artistes', authenticateToken, (req, res) => {
-  // Récupérer les informations de l'artiste depuis le corps de la requête
-  const { nom } = req.body;
-  
-  // Créer l'artiste dans la base de données (code à ajouter)
-  // Utilisez la connexion à la base de données "connection" pour exécuter les requêtes
-  
-  // Répondre avec un message de succès
-  res.json({ message: 'Artiste créé avec succès' });
-});
 //Route pour voir les themes, artistes, jeux d'images.
 app.get('/getAll', (req, res) => {
-  
   const categorie = req.query.categorie;
-  // const token = req.query.token;
 
-  // // Check if a token is provided
-  // if (!token) {
-  //   return res.status(400).send('Token is missing');
-  // }
-
-  // Perform logic based on the selected categorie
   if (categorie === 'theme') {
-    const query = 'SELECT Nom FROM themes';
+    const query = 'SELECT idTheme, Nom FROM themes';
     connection.query(query, (err, results) => {
       if (err) {
         console.error('Error executing SQL query:', err);
@@ -138,11 +119,10 @@ app.get('/getAll', (req, res) => {
         return;
       }
 
-      const themes = results.map((result) => result.Nom);
-      res.send(themes);
+      res.send(results);
     });
   } else if (categorie === 'artistes') {
-    const query = 'SELECT Identifiant FROM Utilisateurs';
+    const query = 'SELECT idUtilisateur, Identifiant FROM Utilisateurs';
     connection.query(query, (err, results) => {
       if (err) {
         console.error('Error executing SQL query:', err);
@@ -150,12 +130,10 @@ app.get('/getAll', (req, res) => {
         return;
       }
 
-      const artistes = results.map((result) => result.Identifiant);
-      // console.log("voici les artistes :" + artistes)
-      res.send(artistes);
+      res.send(results);
     });
   } else if (categorie === 'jeux d\'image') {
-    const query = 'SELECT Nom FROM jeux';
+    const query = 'SELECT idJeu, Nom FROM jeux';
     connection.query(query, (err, results) => {
       if (err) {
         console.error('Error executing SQL query:', err);
@@ -163,13 +141,50 @@ app.get('/getAll', (req, res) => {
         return;
       }
 
-      const jeux = results.map((result) => result.Nom);
-      res.send(jeux);
+      res.send(results);
     });
   } else {
     res.status(400).send('Invalid categorie');
   }
 });
+
+app.patch('/getAllModify', (req, res) => {
+  const { categorie, id, newName } = req.body;
+
+  if (categorie === 'artistes') {
+    // Handle artiste modification based on the provided id
+    const updateQuery = 'UPDATE Utilisateurs SET Identifiant = ? WHERE idUtilisateur = ?';
+    connection.query(updateQuery, [newName, id], (err, result) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.send('Artiste modified successfully');
+    });
+  } else {
+    res.status(400).send('Invalid categorie');
+  }
+});
+
+app.delete('/deleteAll', (req, res) => {
+  const { categorie, id } = req.query;
+
+  if (categorie === 'artistes') {
+    const deleteQuery = 'DELETE FROM Utilisateurs WHERE idUtilisateur = ?';
+    connection.query(deleteQuery, [id], (err, result) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.send('Artiste deleted successfully');
+    });
+  } else {
+    res.status(400).send('Invalid categorie');
+  }
+});
+
 
 // Middleware pour vérifier le token d'authentification
 function authenticateToken(req, res, next) {
@@ -194,3 +209,4 @@ function authenticateToken(req, res, next) {
 app.listen(3000, () => {
   console.log('Serveur démarré');
 });
+
