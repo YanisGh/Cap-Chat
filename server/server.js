@@ -117,17 +117,58 @@ app.post('/artistes', authenticateToken, (req, res) => {
   // Répondre avec un message de succès
   res.json({ message: 'Artiste créé avec succès' });
 });
-
-// Exemple de route pour lister les artistes-créateurs de Captchat
-app.get('/artistes', (req, res) => {
-  // Récupérer les artistes depuis la base de données
-    const checkUserQuery = 'SELECT * FROM utilisateurs';
-    connection.query(checkUserQuery, [username], (err, results) => {
-      
-    });
+//Route pour voir les themes, artistes, jeux d'images.
+app.get('/getAll', (req, res) => {
   
-  // Répondre avec la liste des artistes
-  // res.json({ artistes: [...] });
+  const categorie = req.query.categorie;
+  // const token = req.query.token;
+
+  // // Check if a token is provided
+  // if (!token) {
+  //   return res.status(400).send('Token is missing');
+  // }
+
+  // Perform logic based on the selected categorie
+  if (categorie === 'theme') {
+    const query = 'SELECT Nom FROM themes';
+    connection.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      const themes = results.map((result) => result.Nom);
+      res.send(themes);
+    });
+  } else if (categorie === 'artistes') {
+    const query = 'SELECT Identifiant FROM Utilisateurs';
+    connection.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      const artistes = results.map((result) => result.Identifiant);
+      // console.log("voici les artistes :" + artistes)
+      res.send(artistes);
+    });
+  } else if (categorie === 'jeux d\'image') {
+    const query = 'SELECT Nom FROM jeux';
+    connection.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      const jeux = results.map((result) => result.Nom);
+      res.send(jeux);
+    });
+  } else {
+    res.status(400).send('Invalid categorie');
+  }
 });
 
 // Middleware pour vérifier le token d'authentification
