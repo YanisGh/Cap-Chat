@@ -110,43 +110,33 @@ app.get('/login', (req, res) => {
 app.get('/getAll', (req, res) => {
   const categorie = req.query.categorie;
 
-  if (categorie === 'theme') {
-    const query = 'SELECT idTheme, Nom FROM themes';
-    connection.query(query, (err, results) => {
-      if (err) {
-        console.error('Error executing SQL query:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
+  let query = '';
 
-      res.send(results);
-    });
-  } else if (categorie === 'artistes') {
-    const query = 'SELECT idUtilisateur, Identifiant FROM Utilisateurs';
-    connection.query(query, (err, results) => {
-      if (err) {
-        console.error('Error executing SQL query:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-
-      res.send(results);
-    });
-  } else if (categorie === 'jeux d\'image') {
-    const query = 'SELECT idJeu, Nom FROM jeux';
-    connection.query(query, (err, results) => {
-      if (err) {
-        console.error('Error executing SQL query:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-
-      res.send(results);
-    });
-  } else {
-    res.status(400).send('Invalid categorie');
+  switch (categorie) {
+    case 'theme':
+      query = 'SELECT idTheme, Nom FROM themes';
+      break;
+    case 'artistes':
+      query = 'SELECT idUtilisateur, Identifiant FROM Utilisateurs';
+      break;
+    case 'jeux d\'image':
+      query = 'SELECT idJeu, Nom FROM jeux';
+      break;
+    default:
+      res.status(400).send('Invalid categorie');
+      return;
   }
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing SQL query:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    res.send(results);
+  });
 });
+
 
 //Route pour crée les themes, artistes, jeux d'images.
 app.post('/postAll', (req, res) => {
@@ -156,40 +146,65 @@ app.post('/postAll', (req, res) => {
 app.patch('/modifyAll', (req, res) => {
   const { categorie, id, newName } = req.body;
 
-  if (categorie === 'artistes') {
-    // Handle artiste modification based on the provided id
-    const updateQuery = 'UPDATE Utilisateurs SET Identifiant = ? WHERE idUtilisateur = ?';
-    connection.query(updateQuery, [newName, id], (err, result) => {
-      if (err) {
-        console.error('Error executing SQL query:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-      console.log('artiste modifier avec succes')
-      res.send('Artiste modified successfully');
-    });
-  } else {
-    res.status(400).send('Invalid categorie');
+  let updateQuery = '';
+
+  switch (categorie) {
+    case 'artistes':
+      updateQuery = 'UPDATE Utilisateurs SET Identifiant = ? WHERE idUtilisateur = ?';
+      successMsg = 'Artiste mis à jour avec succès !'
+      break;
+      case 'theme':
+      updateQuery = 'UPDATE themes SET Nom = ? WHERE idTheme = ?';
+      successMsg = 'Theme mis à jour avec succès !'
+      break;
+      case 'jeux d\'image':
+      updateQuery = 'UPDATE jeux SET Nom = ? WHERE idJeu = ?';
+      successMsg = 'Jeux d\'image mis à jour avec succès !'
+      break;
+
+    default:
+      return res.status(400).send('Categorie Invalide');
   }
+
+  connection.query(updateQuery, [newName, id], (err, result) => {
+    if (err) {
+      console.error('Error executing SQL query:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    console.log(successMsg);
+    res.send(successMsg);
+  });
 });
+
 
 
 app.delete('/deleteAll', (req, res) => {
   const { categorie, id } = req.query;
+  let deleteQuery = '';
 
-  if (categorie === 'artistes') {
-    const deleteQuery = 'DELETE FROM Utilisateurs WHERE idUtilisateur = ?';
-    connection.query(deleteQuery, [id], (err, result) => {
-      if (err) {
-        console.error('Error executing SQL query:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-      res.send('Artiste deleted successfully');
-    });
-  } else {
-    res.status(400).send('Invalid categorie');
+  switch (categorie) {
+    case 'artistes':
+      deleteQuery = 'DELETE FROM Utilisateurs WHERE idUtilisateur = ?';
+      break;
+    case 'theme':
+      deleteQuery = 'DELETE FROM themes WHERE idTheme = ?';
+      break;
+    case 'jeux d\'image':
+      deleteQuery = 'DELETE FROM jeux WHERE idJeu = ?';
+      break;
+    default:
+      return res.status(400).send('Invalid categorie');
   }
+
+  connection.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      console.error('Error executing SQL query:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    res.send(categorie + 'deleted successfully');
+  });
 });
 
 

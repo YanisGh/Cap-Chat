@@ -45,18 +45,29 @@
             var contentContainer = document.getElementById("content");
             // Generate table HTML
             var tableHTML = '<table class="table"><thead><tr><th>ID</th><th>' + categorie + '</th><th>Actions</th></tr></thead><tbody>';
-            for (var i = 0; i < response.length; i++) {
-              var item = response[i];
-              var itemName = item.Identifiant;
-              var itemId = item.idUtilisateur; // Add this line to get the ID of the item
+              for (var i = 0; i < response.length; i++) {
+                var item = response[i];
+                var itemId, itemName;
 
-              tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
-                '<span id="button-container-' + itemId + '">' +
-                  '<img src="img/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
-                  '<img src="img/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
-                '</span>' +
-                '</td></tr>';
-            }
+                if (categorie === 'artistes') {
+                  itemId = item.idUtilisateur;
+                  itemName = item.Identifiant;
+                } else if (categorie === 'jeux d\'image') {
+                  itemId = item.idJeu;
+                  itemName = item.Nom;
+                } else if (categorie === 'theme') {
+                  itemId = item.idTheme;
+                  itemName = item.Nom;
+                }
+
+                  tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
+                  '<span id="button-container-' + itemId + '">' +
+                    //Replace the ' with \ to avoid it breaking the syntax when the category is sent in the functions
+                    '<img src="img/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+                    '<img src="img/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+                  '</span>' +
+                  '</td></tr>';
+                  }
             tableHTML += '</tbody></table>';
 
             contentContainer.innerHTML = tableHTML;
@@ -147,11 +158,11 @@
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            alert('Artiste modified successfully');
+            alert(categorie + 'modified successfully');
             // Refresh the table or perform any other necessary action
-            getAll('artistes');
+            getAll(categorie);
           } else {
-            console.error('Error modifying artiste:', this.responseText);
+            console.error('Error modifying' + categorie +' :', this.responseText);
           }
         }
       };
@@ -164,9 +175,9 @@
   }
 
 
-    function logIndex(index) {
-      console.log("Clicked on row index:", index);
-    }
+    // function logIndex(index) {
+    //   console.log("Clicked on row index:", index);
+    // }
 
     document.addEventListener('DOMContentLoaded', function() {
       var urlParams = new URLSearchParams(window.location.search);

@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<form class="container mt-4" action="/submitGame" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="username">Username/ID:</label>
+      <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="gameFile">Game File (.zip):</label>
+      <input type="file" class="form-control-file" id="gameFile" name="gameFile" accept=".zip" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="theme">Theme:</label>
+      <select class="form-control" id="theme" name="theme" required>
+        <option value="Animaux">Animaux</option>
+        <option value="BD">BD</option>
+        <option value="Art">Art</option>
+        <!-- Add more theme options as needed -->
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="neutralImages">Neutral Images:</label>
+      <input type="text" class="form-control" id="neutralImages" name="neutralImages" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="singularImages">Singular Images:</label>
+      <input type="text" class="form-control" id="singularImages" name="singularImages" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="question">Question for Singular Images:</label>
+      <input type="text" class="form-control" id="question" name="question" required>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  
