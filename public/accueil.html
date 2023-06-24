@@ -11,12 +11,18 @@
       cursor: pointer;
       margin-right: 10px;
     }
+    .icon-edit,
+    .icon-delete {
+      width: 30px;
+      height: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Login Successful</h1>
     <p>Welcome to the member's area!</p>
+    <p id="demo"></p>
     <div class="btn-group">
       <button type="button" class="btn btn-primary" onclick="getAll('theme')">Voir les thèmes</button>
       <button type="button" class="btn btn-primary" onclick="getAll('artistes')">Voir les artistes</button>
@@ -37,15 +43,18 @@
           if (this.status == 200) {
             var response = JSON.parse(this.responseText);
             var contentContainer = document.getElementById("content");
-
-            var tableHTML = '<table class="table"><thead><tr><th>' + categorie + '</th><th>Actions</th></tr></thead><tbody>';
+            // Generate table HTML
+            var tableHTML = '<table class="table"><thead><tr><th>ID</th><th>' + categorie + '</th><th>Actions</th></tr></thead><tbody>';
             for (var i = 0; i < response.length; i++) {
               var item = response[i];
               var itemName = item.Identifiant;
-              tableHTML += '<tr><td>' + itemName + '</td><td>' +
-                '<img src="img/bin.jpg" class="action-icon" onclick="deleteAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
-                '<img src="crayon.png" class="action-icon" onclick="modifyAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
-                '<button class="log-button" onclick="logIndex(' + item.idUtilisateur + ')">Log Index</button>' +
+              var itemId = item.idUtilisateur; // Add this line to get the ID of the item
+
+              tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
+                '<span id="button-container-' + itemId + '">' +
+                  '<img src="img/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
+                  '<img src="img/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie + '\', ' + item.idUtilisateur + ')">' +
+                '</span>' +
                 '</td></tr>';
             }
             tableHTML += '</tbody></table>';
@@ -66,7 +75,8 @@
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            alert('Row deleted successfully');
+            document.getElementById("demo").innerHTML = categorie + ' supprimer avec succès !';
+            alert(categorie + ' supprimer avec succès !');
             getAll(categorie);
           } else {
             document.getElementById("demo").innerHTML = 'Error: ' + this.status;
@@ -76,8 +86,83 @@
     }
 
     function modifyAll(categorie, index) {
-      window.location.href = 'http://localhost:3000/modifyAll?categorie=' + categorie + '&id=' + index;
+      var row = document.getElementById('row-' + index);
+      if (!row) {
+        console.error("Row not found.");
+        return;
+      }
+
+      var itemNameElement = row.querySelector('.item-name');
+      if (!itemNameElement) {
+        console.error("Item name element not found.");
+        return;
+      }
+
+      var itemName = itemNameElement.innerText;
+
+      // Create textarea element
+      var textarea = document.createElement('textarea');
+      textarea.setAttribute('id', 'textarea-' + index);
+      textarea.value = itemName;
+
+      // Replace item name column with textarea
+      itemNameElement.innerHTML = '';
+      itemNameElement.appendChild(textarea);
+
+      // Change button text and onclick function
+      var buttonContainer = document.getElementById('button-container-' + index);
+      if (buttonContainer) {
+        buttonContainer.innerHTML = '';
+        var confirmButton = document.createElement('img');
+        confirmButton.setAttribute('src', 'img/check.png');
+        confirmButton.setAttribute('alt', 'confirm');
+        confirmButton.classList.add('action-icon', 'icon-edit');
+        confirmButton.onclick = function() {
+          confirmEdit(categorie, index);
+        };
+        buttonContainer.appendChild(confirmButton);
+      }
     }
+
+    function confirmEdit(categorie, index) {
+      var row = document.getElementById('row-' + index);
+      if (!row) {
+        console.error("Row not found.");
+        return;
+      }
+
+      var itemNameElement = row.querySelector('.item-name');
+      if (!itemNameElement) {
+        console.error("Item name element not found.");
+        return;
+      }
+
+      var textarea = document.getElementById('textarea-' + index);
+      var newName = textarea.value;
+
+      var xhttp = new XMLHttpRequest();
+      var url = 'http://localhost:3000/modifyAll';
+      xhttp.open('PATCH', url, true);
+      xhttp.setRequestHeader('Content-type', 'application/json');
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            alert('Artiste modified successfully');
+            // Refresh the table or perform any other necessary action
+            getAll('artistes');
+          } else {
+            console.error('Error modifying artiste:', this.responseText);
+          }
+        }
+      };
+      var data = JSON.stringify({
+        categorie: categorie,
+        id: index,
+        newName: newName
+      });
+      xhttp.send(data);
+  }
+
 
     function logIndex(index) {
       console.log("Clicked on row index:", index);

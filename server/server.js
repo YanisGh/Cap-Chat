@@ -148,7 +148,12 @@ app.get('/getAll', (req, res) => {
   }
 });
 
-app.patch('/getAllModify', (req, res) => {
+//Route pour crée les themes, artistes, jeux d'images.
+app.post('/postAll', (req, res) => {
+
+});
+
+app.patch('/modifyAll', (req, res) => {
   const { categorie, id, newName } = req.body;
 
   if (categorie === 'artistes') {
@@ -160,12 +165,14 @@ app.patch('/getAllModify', (req, res) => {
         res.status(500).send('Internal Server Error');
         return;
       }
+      console.log('artiste modifier avec succes')
       res.send('Artiste modified successfully');
     });
   } else {
     res.status(400).send('Invalid categorie');
   }
 });
+
 
 app.delete('/deleteAll', (req, res) => {
   const { categorie, id } = req.query;
