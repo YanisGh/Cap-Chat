@@ -159,6 +159,8 @@ app.get('/getAll', (req, res) => {
   });
 });
 
+app.post('/postTheme', (req, res) => {
+});
 
 //Route pour crée les jeux.
 app.post('/postForm', upload.fields([
