@@ -181,48 +181,65 @@ app.post('/postForm', upload.fields([
   const neutralPic = req.files['neutralPics'][0];
   const singularPic = req.files['singularPic'][0];
 
-  const neutralZip = new AdmZip(neutralPic.path);
-  const neutralEntries = neutralZip.getEntries();
-
-  neutralEntries.forEach((entry) => {
-    //console.log(entry);
-    if (!entry.isDirectory) {
-      const extractedPath = path.join('C:/Users/yanis/CAPchat/Cap-Chat/public/captchaIMG/neutres', entry.entryName);
-      const entryData = entry.getData();
-      fs.writeFileSync(extractedPath, entryData);
-      console.log('Neutral Picture:', entry.entryName);
-    }
-  });
-  
-  const singularZip = new AdmZip(singularPic.path);
-  const singularEntries = singularZip.getEntries();
-
-  singularEntries.forEach((entry) => {
-    //console.log(entry);
-    if (!entry.isDirectory) {
-      const extractedPath = 'C:/Users/yanis/CAPchat/Cap-Chat/public/captchaIMG/singuliers/' + entry.entryName;
-      const entryData = entry.getData();
-      fs.writeFileSync(extractedPath, entryData);
-      console.log('Singular Picture:', entry.entryName);
-    }
-  });
-
-
-  // fs.unlinkSync(neutralPic.path);
-  // fs.unlinkSync(singularPic.path);
-
-  const insertCaptchatQuery = `INSERT INTO captchat (Nom, idTheme, idUtilisateur) VALUES ('${captchatName}', ${themeId}, '25') `;
+  const insertCaptchatQuery = `INSERT INTO jeux (Nom, idTheme, idUtilisateur) VALUES ('${captchatName}', ${themeId}, '25')`;
   connection.query(insertCaptchatQuery, (error, captchatResult) => {
     if (error) {
       console.error('Error inserting captchat:', error);
       // Handle the error
+      res.sendStatus(500); // Send an error response
     } else {
-      // Captchat and theme inserted successfully
-      console.log('Captchat and theme inserted successfully');
-      // Handle the success
-    }
+      // Captchat inserted successfully
+      console.log('Captchat inserted successfully');
+      const captchaId = captchatResult.insertId;
 
-  res.sendStatus(200);
+      const neutralZip = new AdmZip(neutralPic.path);
+      const neutralEntries = neutralZip.getEntries();
+
+      neutralEntries.forEach((entry) => {
+        if (!entry.isDirectory) {
+          const extractedPath = path.join('C:/Users/yanis/CAPchat/Cap-Chat/public/captchaIMG/neutres', entry.entryName);
+          const entryData = entry.getData();
+          fs.writeFileSync(extractedPath, entryData);
+          console.log('Neutral Picture:', entry.entryName);
+
+          const insertNeutralImageQuery = `INSERT INTO images (NomIMG, typeIMG, idJeu) VALUES ('${entry.entryName}', 0, ${captchaId})`;
+          connection.query(insertNeutralImageQuery, (error, imageResult) => {
+            if (error) {
+              console.error('Error inserting neutral image:', error);
+              // Handle the error
+            } else {
+              // Neutral image inserted successfully
+              console.log('Neutral image inserted successfully');
+            }
+          });
+        }
+      });
+
+      const singularZip = new AdmZip(singularPic.path);
+      const singularEntries = singularZip.getEntries();
+
+      singularEntries.forEach((entry) => {
+        if (!entry.isDirectory) {
+          const extractedPath = path.join('C:/Users/yanis/CAPchat/Cap-Chat/public/captchaIMG/singuliers', entry.entryName);
+          const entryData = entry.getData();
+          fs.writeFileSync(extractedPath, entryData);
+          console.log('Singular Picture:', entry.entryName);
+      
+          const insertSingularImageQuery = `INSERT INTO images (NomIMG, QuestionAssociee, typeIMG, idJeu) VALUES ('${entry.entryName}', '${singularPicHint}', 1, ${captchaId})`;
+          connection.query(insertSingularImageQuery, (error, imageResult) => {
+            if (error) {
+              console.error('Error inserting singular image:', error);
+              // Handle the error
+            } else {
+              // Singular image inserted successfully
+              console.log('Singular image inserted successfully');
+            }
+          });
+        }
+      });
+
+      res.sendStatus(200); // Send a success response
+    }
   });
 });
 
