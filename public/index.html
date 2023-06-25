@@ -36,7 +36,7 @@
           var response = JSON.parse(this.responseText);
           var token = response.token;
           // Redirect to accueil.html with the token
-          window.location.href = `public/accueil.html?token=${token}`;
+          window.location.href = `accueil.html?token=${token}`;
         } else {
           document.getElementById("demo").innerHTML = 'Error: ' + this.status;
         }

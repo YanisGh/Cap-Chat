@@ -27,9 +27,68 @@
       <button type="button" class="btn btn-primary" onclick="getAll('theme')">Voir les thèmes</button>
       <button type="button" class="btn btn-primary" onclick="getAll('artistes')">Voir les artistes</button>
       <button type="button" class="btn btn-primary" onclick="getAll('jeux d\'image')">Voir les jeux d'image</button>
+      <button type="button" class="btn btn-primary" onclick="showForm()">Ajouter un jeu d'image</button>
+      <button onclick="startCaptchaGame()">Test Captcha Game</button>
     </div>
+    <div id="formContainer" style="display: none;">
+      <form id="myForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+    
+        <label for="captchatName">CaptChat Name:</label>
+        <input type="text" id="captchatName" name="captchatName"><br><br>
+    
+        <label for="theme">Theme:</label>
+        <select id="theme" name="theme"></select>
 
-    <div id="content" class="mt-4"></div>
+        <script>
+          // Function to populate the select dropdown with themes
+          function populateThemes() {
+          var xhttp = new XMLHttpRequest();
+          var url = 'http://localhost:3000/getAll?categorie=theme';
+          xhttp.open('GET', url, true);
+          xhttp.send();
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4) {
+              if (this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                var select = document.getElementById('theme');
+
+                // Clear existing options
+                select.innerHTML = '';
+
+                // Add theme options
+                response.forEach(function(theme) {
+                  var option = document.createElement('option');
+                  option.value = theme.idTheme;
+                  option.textContent = theme.Nom;
+                  select.appendChild(option);
+                });
+              } else {
+                document.getElementById('demo').innerHTML = 'Error: ' + this.status;
+              }
+            }
+          };
+        }
+
+        // Call the populateThemes function to fetch and populate the themes
+        populateThemes();
+        </script>
+        </select><br><br>
+    
+        <label for="neutralPics">Neutral Pics (.zip):</label>
+        <input type="file" id="neutralPics" name="neutralPics" accept=".zip"><br><br>
+    
+        <label for="singularPic">Singular Pic (.zip):</label>
+        <input type="file" id="singularPic" name="singularPic" accept=".zip"><br><br>
+    
+        <label for="singularPicHint">Singular Pic Hint:</label><br>
+        <input type="text" id="singularPicHint" name="singularPicHint"><br><br>
+
+      </form>
+      <button onclick="submitForm()">Submit</button>
+    </div>
+      <div id="content" class="mt-4"></div>
   </div>
 
   <script>
@@ -63,8 +122,8 @@
                   tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
                   '<span id="button-container-' + itemId + '">' +
                     //Replace the ' with \ to avoid it breaking the syntax when the category is sent in the functions
-                    '<img src="img/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
-                    '<img src="img/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+                    '<img src="img/logo/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+                    '<img src="img/logo/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
                   '</span>' +
                   '</td></tr>';
                   }
@@ -78,6 +137,41 @@
       };
     }
 
+    function showForm() {
+      var formContainer = document.getElementById("formContainer");
+      if (formContainer.style.display === "none") {
+        formContainer.style.display = "block";
+      } else {
+        formContainer.style.display = "none";
+      }
+    }
+
+    function submitForm() {
+    var form = document.getElementById("myForm");
+    var formData = new FormData(form);
+
+    var themeSelect = document.getElementById("theme");
+    var selectedTheme = themeSelect.options[themeSelect.selectedIndex];
+    
+    // Add theme ID and name to the form data
+    formData.append("themeId", selectedTheme.value);
+    formData.append("themeName", selectedTheme.textContent);
+
+    var url = 'http://localhost:3000/postForm';
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var response = JSON.parse(this.responseText);
+        // Handle the response from the server
+        console.log(response);
+      }
+    };
+
+    xhttp.open("POST", url, true);
+    xhttp.send(formData);
+}
+
+
     function deleteAll(categorie, index) {
       var xhttp = new XMLHttpRequest();
       var url = `http://localhost:3000/deleteAll?categorie=${categorie}&id=${index}`;
@@ -86,7 +180,7 @@
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            document.getElementById("demo").innerHTML = categorie + ' supprimer avec succès !';
+            //document.getElementById("demo").innerHTML = categorie + ' supprimer avec succès !';
             alert(categorie + ' supprimer avec succès !');
             getAll(categorie);
           } else {
@@ -125,7 +219,7 @@
       if (buttonContainer) {
         buttonContainer.innerHTML = '';
         var confirmButton = document.createElement('img');
-        confirmButton.setAttribute('src', 'img/check.png');
+        confirmButton.setAttribute('src', 'img/logo/check.png');
         confirmButton.setAttribute('alt', 'confirm');
         confirmButton.classList.add('action-icon', 'icon-edit');
         confirmButton.onclick = function() {
@@ -173,6 +267,53 @@
       });
       xhttp.send(data);
   }
+
+  function startCaptchaGame() {
+  // Send a GET request to the CAPTCHA route
+  var xhttp = new XMLHttpRequest();
+  var url = 'http://localhost:3000/captcha/2';
+  xhttp.open('GET', url, true);
+  xhttp.send();
+
+  // Handle the response
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var response = JSON.parse(this.responseText);
+      var captchaData = response.captchaData;
+
+      // Display the images using the image URLs in captchaData
+      captchaData.neutralImages.forEach(function(imageUrl) {
+        var img = document.createElement('img');
+        img.src = 'captchaIMG/neutres/' + imageUrl;
+        img.style.width = '50px';
+        img.style.height = '50px';
+        document.body.appendChild(img);
+      });
+
+      var singularImg = document.createElement('img');
+      singularImg.src = 'captchaIMG/singuliers/' + captchaData.singularImage.NomIMG;
+      singularImg.style.width = '50px';
+      singularImg.style.height = '50px';
+      document.body.appendChild(singularImg);
+
+      // CSS Styling for arranging images in a 4x4 grid
+      document.body.style.display = 'flex';
+      document.body.style.flexWrap = 'wrap';
+      document.body.style.justifyContent = 'center';
+
+      // Apply additional styling to each image container
+      var imgContainers = document.getElementsByTagName('img');
+      for (var i = 0; i < imgContainers.length; i++) {
+        imgContainers[i].style.margin = '5px';
+      }
+    }
+  };
+}
+
+
+
+
+
 
 
     // function logIndex(index) {
