@@ -44,11 +44,12 @@
     <p id="demo"></p>
     <div class="btn-group">
       <button type="button" class="btn btn-primary" onclick="getAll('theme')">Voir les thèmes</button>
+      <button id="addTheme" style="display: none;">Ajouter un theme</button>
       <button type="button" class="btn btn-primary" onclick="getAll('artistes')">Voir les artistes</button>
       <button type="button" class="btn btn-primary" onclick="getAll('jeux d\'image')">Voir les jeux d'image</button>
       <button type="button" class="btn btn-primary" onclick="showForm()">Ajouter un jeu d'image</button>
       <button onclick="startCaptchaGame()">Test Captcha Game</button>
-    </div>
+    </div>    
     <div id="formContainer" style="display: none;">
       <form id="myForm">
         <label for="username">Username:</label>
@@ -135,14 +136,17 @@
               for (var i = 0; i < response.length; i++) {
                 var item = response[i];
                 var itemId, itemName;
-
+                var addThemeButton = document.getElementById('addTheme');
                 if (categorie === 'artistes') {
                   itemId = item.idUtilisateur;
                   itemName = item.Identifiant;
+                  addThemeButton.style.display = 'none';
                 } else if (categorie === 'jeux d\'image') {
                   itemId = item.idJeu;
                   itemName = item.Nom;
+                  addThemeButton.style.display = 'none';
                 } else if (categorie === 'theme') {
+                  addThemeButton.style.display = 'inline-block';
                   itemId = item.idTheme;
                   itemName = item.Nom;
                 }
@@ -335,12 +339,16 @@
       });
       imageContainer.appendChild(singularImg);
 
+      var question = document.createElement('p');
+      question.textContent = captchaData.questionAssocié;
+      imageContainer.appendChild(question);
+
       // Apply CSS Styling for arranging images in a 4x4 grid
       var imgContainers = imageContainer.getElementsByTagName('img');
       for (var i = 0; i < imgContainers.length; i++) {
         imgContainers[i].style.margin = '5px';
-        imgContainers[i].style.width = '50px';
-        imgContainers[i].style.height = '50px';
+        imgContainers[i].style.width = '100px';
+        imgContainers[i].style.height = '100px';
         imgContainers[i].style.display = 'block';
         imgContainers[i].style.float = 'left';
       }
