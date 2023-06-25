@@ -300,98 +300,94 @@
       xhttp.send(data);
   }
 
-  function startCaptchaGame() {
-  // Send a GET request to the CAPTCHA route
-  var xhttp = new XMLHttpRequest();
-  var url = 'http://localhost:3000/captcha/5';
-  xhttp.open('GET', url, true);
-  xhttp.send();
+    function startCaptchaGame() {
+    // Send a GET request to the CAPTCHA route with the specified idJeu
+    var xhttp = new XMLHttpRequest();
+    var url = 'http://localhost:3000/captcha/1' 
+    xhttp.open('GET', url, true);
+    xhttp.send();
 
-  // Handle the response
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var response = JSON.parse(this.responseText);
-      var captchaData = response.captchaData;
-      var timer = 30; // Initial timer value in seconds
+    // Handle the response
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var response = JSON.parse(this.responseText);
+        var captchaData = response.captchaData;
+        var timer = 30; // Initial timer value in seconds
 
-      // Clear the previous images and timer
-      var imageContainer = document.getElementById('imageContainer');
-      imageContainer.innerHTML = '';
-      clearInterval(timerInterval);
-
-      // Display the neutral images using the image URLs in captchaData
-      captchaData.neutralImages.forEach(function(imageUrl) {
-        var img = createImageElement(imageUrl, 'neutres');
-        img.addEventListener('click', function() {
-          timer -= 5; // Deduct 5 seconds for non-singular image click
-        });
-        imageContainer.appendChild(img);
-      });
-
-      // Display the singular image using the image URL in captchaData
-      var singularImg = createImageElement(captchaData.singularImage.NomIMG, 'singuliers');
-      singularImg.addEventListener('click', function() {
-        alert('Captcha validé');
+        // Clear the previous images and timer
+        var imageContainer = document.getElementById('imageContainer');
+        imageContainer.innerHTML = '';
         clearInterval(timerInterval);
-        imageContainer.innerHTML = ''
-        timerDisplay.textContent = '';
-        thermometerContainer.style.display = 'none';
-      });
-      imageContainer.appendChild(singularImg);
 
-      var question = document.createElement('p');
-      question.textContent = captchaData.questionAssocié;
-      imageContainer.appendChild(question);
+        // Display the neutral images using the image URLs in captchaData
+        captchaData.neutralImages.forEach(function(imageUrl) {
+          var img = createImageElement(imageUrl, 'neutres');
+          img.addEventListener('click', function() {
+            timer -= 5; // Deduct 5 seconds for non-singular image click
+          });
+          imageContainer.appendChild(img);
+        });
 
-      // Apply CSS Styling for arranging images in a 4x4 grid
-      var imgContainers = imageContainer.getElementsByTagName('img');
-      for (var i = 0; i < imgContainers.length; i++) {
-        imgContainers[i].style.margin = '5px';
-        imgContainers[i].style.width = '100px';
-        imgContainers[i].style.height = '100px';
-        imgContainers[i].style.display = 'block';
-        imgContainers[i].style.float = 'left';
-      }
-
-      // Update the timer display every second
-      var timerDisplay = document.getElementById('timer');
-      timerDisplay.textContent = 'Time left: ' + timer + 's';
-      var timerInterval = setInterval(function() {
-        timer--;
-        timerDisplay.textContent = 'Time left: ' + timer + 's';
-
-        if (timer <= 0) {
+        // Display the singular image using the image URL in captchaData
+        var singularImg = createImageElement(captchaData.singularImage.NomIMG, 'singuliers');
+        singularImg.addEventListener('click', function() {
+          alert('Captcha validé');
           clearInterval(timerInterval);
-          alert('You ran out of time');
           imageContainer.innerHTML = '';
           timerDisplay.textContent = '';
           thermometerContainer.style.display = 'none';
+        });
+        imageContainer.appendChild(singularImg);
+
+        var question = document.createElement('p');
+        question.textContent = captchaData.singularImage.QuestionAssociee;
+        imageContainer.appendChild(question);
+
+        // Apply CSS Styling for arranging images in a 4x4 grid
+        var imgContainers = imageContainer.getElementsByTagName('img');
+        for (var i = 0; i < imgContainers.length; i++) {
+          imgContainers[i].style.margin = '5px';
+          imgContainers[i].style.width = '100px';
+          imgContainers[i].style.height = '100px';
+          imgContainers[i].style.display = 'block';
+          imgContainers[i].style.float = 'left';
         }
 
-        // Calculate the percentage of remaining time
+        // Update the timer display every second
+        var timerDisplay = document.getElementById('timer');
+        timerDisplay.textContent = 'Time left: ' + timer + 's';
+        var timerInterval = setInterval(function() {
+          timer--;
+          timerDisplay.textContent = 'Time left: ' + timer + 's';
+
+          if (timer <= 0) {
+            clearInterval(timerInterval);
+            alert('You ran out of time');
+            imageContainer.innerHTML = '';
+            timerDisplay.textContent = '';
+            thermometerContainer.style.display = 'none';
+          }
+
+          // Calculate the percentage of remaining time
+          var percentage = (timer / 30) * 100; // Adjust based on your timer range
+
+          // Update the thermometer fill based on the percentage
+          updateThermometerFill(percentage);
+        }, 1000);
+
+        // Function to update the thermometer fill based on the percentage
+        function updateThermometerFill(percentage) {
+          var fillElement = document.getElementById('thermometerFill');
+          fillElement.style.width = percentage + '%'; // Update width instead of height
+        }
+
+        // Example usage:
+        // Update the thermometer fill with a percentage between 0 and 100
         var percentage = (timer / 30) * 100; // Adjust based on your timer range
-
-        // Update the thermometer fill based on the percentage
         updateThermometerFill(percentage);
-      }, 1000);
-
-      // Function to update the thermometer fill based on the percentage
-      function updateThermometerFill(percentage) {
-      var fillElement = document.getElementById('thermometerFill');
-      fillElement.style.width = percentage + '%';  // Update width instead of height
-    }
-
-      // Example usage:
-      // Update the thermometer fill with a percentage between 0 and 100
-      var percentage = (timer / 30) * 100; // Adjust based on your timer range
-      updateThermometerFill(percentage);
-    }
-  };
-}
-
-
-
-
+      }
+    };
+  }
 
   // Helper function to create an image element
   function createImageElement(imageUrl, folder) {

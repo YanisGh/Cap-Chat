@@ -12,6 +12,7 @@ app.set('views', path.join(__dirname, 'views'));
 const multer = require('multer');
 const AdmZip = require('adm-zip');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static('public'));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -29,7 +30,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-//app.use(express.static('public'));
 app.use(cors()); // Added
 
 function MD5(string) {
@@ -312,15 +312,18 @@ app.delete('/deleteAll', (req, res) => {
 
 
 app.get('/captcha/:idJeu', (req, res) => {
- 
   const idJeu = req.params.idJeu;
-  // Query to retrieve the singular image with a question associée
+  const linkParam = req.query.link;
+
+  console.log(linkParam);
+
+  // Query to retrieve the singular image with the associated question
   const singularQuery = `SELECT NomIMG, QuestionAssociee FROM images WHERE idJeu = ${idJeu} AND typeIMG = 1 LIMIT 1`;
 
   // Query to retrieve the neutral images
   const neutralQuery = `SELECT NomIMG FROM images WHERE idJeu = ${idJeu} AND typeIMG = 0`;
 
-  // Execute the query to retrieve the images with the given idJeu
+  // Execute the queries to retrieve the images with the given idJeu
   connection.query(singularQuery, (err, singularResults) => {
     if (err) {
       console.error('Error executing the singular image query:', err);
@@ -335,32 +338,135 @@ app.get('/captcha/:idJeu', (req, res) => {
         return;
       }
 
-    // Extract the image names and questions from the query results
-    const neutralImages = neutralResults.map((row) => row.NomIMG);
-    const singularImage = singularResults[0] || null;
-    const singularImageName = singularImage ? singularImage.NomIMG : null;
-    const singularImageQuestion = singularImage ? singularImage.QuestionAssociee : null;
-    
-    // console.log("neutral image 1: " + neutralImages);
-    // console.log("singularImage name: " + singularImageName);
-    // console.log("singularImage question: " + singularImageQuestion);
-    
-    const captchaData = {
-      neutralImages: neutralImages,
-      singularImage: {
-        NomIMG: singularImageName,
-        QuestionsAssociee: singularImageQuestion,
-      },
-    };
-    
+      // Extract the image names and questions from the query results
+      const neutralImages = neutralResults.map((row) => row.NomIMG);
+      const singularImage = singularResults[0] || null;
+      const singularImageName = singularImage ? singularImage.NomIMG : null;
+      const singularImageQuestion = singularImage ? singularImage.QuestionAssociee : null;
 
-      console.log("neutral image 2 : " + neutralImages)
-      console.log("singularImage 2 : " + singularImage.NomIMG + " question : " + singularImageQuestion)
+      // Build the image URLs for the HTML content
+      const neutralImagesURLs = neutralImages.map((imageName) => `/captchaIMG/neutres/${imageName}`);
+      const singularImageURL = singularImageName ? `/captchaIMG/singuliers/${singularImageName}` : null;
 
-      // Render the captcha view and pass the captcha data to the template
-      res.json({ captchaData });
+      console.log(neutralImagesURLs + " || " + singularImageURL)
+
+      // Basic HTML content with dynamic data and image display
+      const htmlContent = `
+      <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Captcha Page</title>
+          <style>
+            .imageContainer {
+              display: grid;
+              grid-template-columns: repeat(4, 100px);
+              grid-template-rows: repeat(4, 100px);
+              grid-gap: 10px;
+            }
+
+            .imageContainer img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+
+            .thermometerContainer {
+              width: 200px;
+              height: 20px;
+              background-color: #eee;
+              position: relative;
+              margin-top: 20px;
+            }
+
+            .thermometerFill {
+              width: 0%;
+              height: 100%;
+              background-color: #00ff00;
+              transition: width 0.3s ease;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="imageContainer">
+            ${neutralImagesURLs
+              .map((imageURL) => `<img src="${imageURL}" alt="Neutral Image">`)
+              .join('')}
+            ${singularImageURL ? `<img src="${singularImageURL}" alt="Singular Image">` : ''}
+          </div>
+          <p>Question: ${singularImageQuestion}</p>
+
+          <div class="thermometerContainer">
+            <div id="thermometerFill" class="thermometerFill"></div>
+          </div>
+          <script>
+            // Your existing code for handling the images and timer
+            var timer = 30; // Initial timer value in seconds
+
+            // Update the timer display every second
+            var timerDisplay = document.createElement('p');
+            timerDisplay.id = 'timer';
+            document.body.appendChild(timerDisplay);
+
+            var timerInterval = setInterval(function() {
+              timer--;
+              timerDisplay.textContent = 'Time left: ' + timer + 's';
+
+              if (timer <= 0) {
+                clearInterval(timerInterval);
+                alert('You ran out of time');
+                imageContainer.innerHTML = '';
+                timerDisplay.textContent = '';
+                thermometerContainer.style.display = 'none';
+              }
+
+              // Calculate the percentage of remaining time
+              var percentage = (timer / 30) * 100; // Adjust based on your timer range
+
+              // Update the thermometer fill based on the percentage
+              updateThermometerFill(percentage);
+            }, 1000);
+
+            // Function to update the thermometer fill based on the percentage
+            function updateThermometerFill(percentage) {
+              var fillElement = document.getElementById('thermometerFill');
+              fillElement.style.width = percentage + '%';
+            }
+
+            // Example usage:
+            // Update the thermometer fill with a percentage between 0 and 100
+            var percentage = (timer / 30) * 100; // Adjust based on your timer range
+            updateThermometerFill(percentage);
+
+            // function validateCaptcha(link) {
+            //   clearInterval(timerInterval);
+            //   alert('Captcha validé');
+            //   //console.log("test");
+            //   //window.location.href = link;
+            // }
+          
+            // Attach click event listener to the images
+            var images = document.querySelectorAll('.imageContainer img');
+            images.forEach(function(image) {
+              image.addEventListener('click', function() {
+                if (image.alt === 'Singular Image') {
+                  clearInterval(timerInterval);
+                  alert('Captcha validé');
+                  console.log("${linkParam}");
+                  window.location.href = decodeURIComponent("${linkParam}");
+                } else if (image.alt === 'Neutral Image') {
+                  timer -= 5;
+                }
+              });
+            });
+          </script>
+        </body>
+        </html>
+
+      `;
+
+      res.send(htmlContent);
     });
-});
+  });
 });
 
 
