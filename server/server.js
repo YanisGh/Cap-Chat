@@ -160,7 +160,26 @@ app.get('/getAll', (req, res) => {
 });
 
 app.post('/postTheme', (req, res) => {
+  const themeInput = req.body.themeInput; // Assuming the input field name is "themeInput"
+
+  //console.log(themeInput)
+
+  const query = `INSERT INTO themes (Nom) VALUES (?)`; // Assuming your themes table has a column named "name"
+  const values = [themeInput];
+
+  connection.query(query, values, (error, result) => {
+    if (error) {
+      // Handle the error appropriately
+      console.error('Failed to add theme:', error);
+      res.status(500).send('Failed to add theme');
+    } else {
+      // Theme added successfully
+      console.log('Theme added:', themeInput);
+      res.status(200).send('Theme added successfully');
+    }
+  });
 });
+
 
 //Route pour crée les jeux.
 app.post('/postForm', upload.fields([

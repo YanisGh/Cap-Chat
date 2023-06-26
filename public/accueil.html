@@ -16,23 +16,7 @@
       width: 30px;
       height: 20px;
     }
-    .thermometer {
-      width: 400px;
-      height: 20px;
-      background-color: #f1f1f1;
-      border: 1px solid #982424;
-      position: relative;
-      overflow: hidden;
-    }
 
-    #thermometerFill {
-      width: 100%;
-      height: 100%;
-      background-color: #0080e1 !important;
-      position: absolute;
-      right: 0;  /* Align the right side of the fill element */
-      transition: width 1s;  /* Change transition property to width */
-    }
 
 
   </style>
@@ -44,82 +28,160 @@
     <p id="demo"></p>
     <div class="btn-group">
       <button type="button" class="btn btn-primary" onclick="getAll('theme')">Voir les thèmes</button>
-      <button id="addTheme" style="display: none;">Ajouter un theme</button>
+      <button id="addTheme" style="display: none;" onclick="toggleThemeForm()">Ajouter un thème</button>
       <button type="button" class="btn btn-primary" onclick="getAll('artistes')">Voir les artistes</button>
       <button type="button" class="btn btn-primary" onclick="getAll('jeux d\'image')">Voir les jeux d'image</button>
       <button type="button" class="btn btn-primary" onclick="showForm()">Ajouter un jeu d'image</button>
       <button onclick="startCaptchaGame()">Test Captcha Game</button>
-    </div>    
+    </div>
+  
+    <div id="themeForm" style="display: none;">
+      <input type="text" id="themeInput" placeholder="Nom du thème">
+      <button id="confirmButton" onclick="postTheme()">Confirmer</button>
+    </div>
+
+    <!--Form pr les jeux d'images-->
     <div id="formContainer" style="display: none;">
       <form id="myForm">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username"><br><br>
-    
+  
         <label for="captchatName">CaptChat Name:</label>
         <input type="text" id="captchatName" name="captchatName"><br><br>
-    
+  
         <label for="theme">Theme:</label>
         <select id="theme" name="theme"></select>
-
+  
         <script>
           // Function to populate the select dropdown with themes
           function populateThemes() {
-          var xhttp = new XMLHttpRequest();
-          var url = 'http://localhost:3000/getAll?categorie=theme';
-          xhttp.open('GET', url, true);
-          xhttp.send();
-          xhttp.onreadystatechange = function() {
-            if (this.readyState == 4) {
-              if (this.status == 200) {
-                var response = JSON.parse(this.responseText);
-                var select = document.getElementById('theme');
-
-                // Clear existing options
-                select.innerHTML = '';
-
-                // Add theme options
-                response.forEach(function(theme) {
-                  var option = document.createElement('option');
-                  option.value = theme.idTheme;
-                  option.textContent = theme.Nom;
-                  select.appendChild(option);
-                });
-              } else {
-                document.getElementById('demo').innerHTML = 'Error: ' + this.status;
+            var xhttp = new XMLHttpRequest();
+            var url = 'http://localhost:3000/getAll?categorie=theme';
+            xhttp.open('GET', url, true);
+            xhttp.send();
+            xhttp.onreadystatechange = function() {
+              if (this.readyState == 4) {
+                if (this.status == 200) {
+                  var response = JSON.parse(this.responseText);
+                  var select = document.getElementById('theme');
+  
+                  // Clear existing options
+                  select.innerHTML = '';
+  
+                  // Add theme options
+                  response.forEach(function(theme) {
+                    var option = document.createElement('option');
+                    option.value = theme.idTheme;
+                    option.textContent = theme.Nom;
+                    select.appendChild(option);
+                  });
+                } else {
+                  document.getElementById('demo').innerHTML = 'Error: ' + this.status;
+                }
               }
-            }
-          };
-        }
-
-        // Call the populateThemes function to fetch and populate the themes
-        populateThemes();
+            };
+          }
+  
+          // Call the populateThemes function to fetch and populate the themes
+          populateThemes();
         </script>
         </select><br><br>
-    
+  
         <label for="neutralPics">Neutral Pics (.zip):</label>
         <input type="file" id="neutralPics" name="neutralPics" accept=".zip"><br><br>
-    
+  
         <label for="singularPic">Singular Pic (.zip):</label>
         <input type="file" id="singularPic" name="singularPic" accept=".zip"><br><br>
-    
+  
         <label for="singularPicHint">Singular Pic Hint:</label><br>
         <input type="text" id="singularPicHint" name="singularPicHint"><br><br>
-
+  
       </form>
       <button onclick="submitForm()">Submit</button>
     </div>
-
-      <div id="content" class="mt-4"></div>
-      <div id="thermometerContainer" class="thermometer">
-        <div id="thermometerFill"></div>
-      </div>
-      
-      <div id="timer" class="mt-4"></div>
-      
-      <div id="imageContainer" class="mt-4"></div>
+  
+    <div id="content" class="mt-4"></div>
+    <div id="thermometerContainer" class="thermometer">
+      <div id="thermometerFill"></div>
+    </div>
+  
+    <div id="timer" class="mt-4"></div>
+  
+    <div id="imageContainer" class="mt-4"></div>
   </div>
-
+  
   <script>
+    var addThemeButton = document.getElementById('addTheme');
+    var themeForm = document.getElementById('themeForm');
+  
+    function postTheme() {
+    var themeInput = document.getElementById('themeInput').value;
+
+    // Create an XMLHttpRequest object
+    var xhttp = new XMLHttpRequest();
+    var url = 'http://localhost:3000/postTheme';
+
+    // Set the request method and URL
+    xhttp.open('POST', url, true);
+
+    // Set the request headers
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+
+    // Set the request body (data to be sent)
+    var data = JSON.stringify({ themeInput: themeInput });
+
+    // Handle the response
+    xhttp.onreadystatechange = function() {
+      if (this.readyState === 4) {
+        if (this.status === 200) {
+          // Request was successful
+          alert("Theme ajouté avec succès !")
+          // You can perform any additional actions here after adding the theme
+        } else {
+          // Request failed
+          console.error('Failed to add theme');
+          // You can handle the failure case here
+        }
+      }
+    };
+
+    // Send the request
+    xhttp.send(data);
+}
+
+
+    function toggleThemeForm() {
+      if (themeForm.style.display === 'block') {
+        themeForm.style.display = 'none';
+      } else {
+        themeForm.style.display = 'block';
+      }
+    }
+  
+    function getAll(type) {
+      addThemeButton.style.display = 'none';
+      themeForm.style.display = 'none';
+      // Perform actions specific to each button press
+      if (type === 'theme') {
+        // Logic for "Voir les thèmes" button
+        toggleThemeForm();
+      // } else if (type === 'artistes') {
+      //   // Logic for "Voir les artistes" button
+      }
+    }
+
+  function showForm() {
+    addThemeButton.style.display = 'none';
+    themeForm.style.display = 'block';
+  }
+
+  var confirmButton = document.getElementById('confirmButton');
+  confirmButton.addEventListener('click', function() {
+    var themeInput = document.getElementById('themeInput').value;
+    // Perform any desired actions with the theme input value
+    console.log('New theme:', themeInput);
+    themeForm.style.display = 'none'; // Hide the form after confirming
+});
     function getAll(categorie) {
       formContainer.style.display = "none";
       var xhttp = new XMLHttpRequest();
@@ -202,7 +264,6 @@
     xhttp.open("POST", url, true);
     xhttp.send(formData);
 }
-
 
     function deleteAll(categorie, index) {
       var xhttp = new XMLHttpRequest();
@@ -301,92 +362,9 @@
   }
 
     function startCaptchaGame() {
-    // Send a GET request to the CAPTCHA route with the specified idJeu
-    var xhttp = new XMLHttpRequest();
-    var url = 'http://localhost:3000/captcha/1' 
-    xhttp.open('GET', url, true);
-    xhttp.send();
-
-    // Handle the response
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        var response = JSON.parse(this.responseText);
-        var captchaData = response.captchaData;
-        var timer = 30; // Initial timer value in seconds
-
-        // Clear the previous images and timer
-        var imageContainer = document.getElementById('imageContainer');
-        imageContainer.innerHTML = '';
-        clearInterval(timerInterval);
-
-        // Display the neutral images using the image URLs in captchaData
-        captchaData.neutralImages.forEach(function(imageUrl) {
-          var img = createImageElement(imageUrl, 'neutres');
-          img.addEventListener('click', function() {
-            timer -= 5; // Deduct 5 seconds for non-singular image click
-          });
-          imageContainer.appendChild(img);
-        });
-
-        // Display the singular image using the image URL in captchaData
-        var singularImg = createImageElement(captchaData.singularImage.NomIMG, 'singuliers');
-        singularImg.addEventListener('click', function() {
-          alert('Captcha validé');
-          clearInterval(timerInterval);
-          imageContainer.innerHTML = '';
-          timerDisplay.textContent = '';
-          thermometerContainer.style.display = 'none';
-        });
-        imageContainer.appendChild(singularImg);
-
-        var question = document.createElement('p');
-        question.textContent = captchaData.singularImage.QuestionAssociee;
-        imageContainer.appendChild(question);
-
-        // Apply CSS Styling for arranging images in a 4x4 grid
-        var imgContainers = imageContainer.getElementsByTagName('img');
-        for (var i = 0; i < imgContainers.length; i++) {
-          imgContainers[i].style.margin = '5px';
-          imgContainers[i].style.width = '100px';
-          imgContainers[i].style.height = '100px';
-          imgContainers[i].style.display = 'block';
-          imgContainers[i].style.float = 'left';
-        }
-
-        // Update the timer display every second
-        var timerDisplay = document.getElementById('timer');
-        timerDisplay.textContent = 'Time left: ' + timer + 's';
-        var timerInterval = setInterval(function() {
-          timer--;
-          timerDisplay.textContent = 'Time left: ' + timer + 's';
-
-          if (timer <= 0) {
-            clearInterval(timerInterval);
-            alert('You ran out of time');
-            imageContainer.innerHTML = '';
-            timerDisplay.textContent = '';
-            thermometerContainer.style.display = 'none';
-          }
-
-          // Calculate the percentage of remaining time
-          var percentage = (timer / 30) * 100; // Adjust based on your timer range
-
-          // Update the thermometer fill based on the percentage
-          updateThermometerFill(percentage);
-        }, 1000);
-
-        // Function to update the thermometer fill based on the percentage
-        function updateThermometerFill(percentage) {
-          var fillElement = document.getElementById('thermometerFill');
-          fillElement.style.width = percentage + '%'; // Update width instead of height
-        }
-
-        // Example usage:
-        // Update the thermometer fill with a percentage between 0 and 100
-        var percentage = (timer / 30) * 100; // Adjust based on your timer range
-        updateThermometerFill(percentage);
-      }
-    };
+    // Redirect to the provided link
+    var link = 'http://localhost:3000/captcha/6?link=http://localhost:3000';
+    window.location.href = link;
   }
 
   // Helper function to create an image element
@@ -395,13 +373,6 @@
     img.src = 'captchaIMG/' + folder + '/' + imageUrl;
     return img;
 }
-
-
-
-
-
-
-
 
     // function logIndex(index) {
     //   console.log("Clicked on row index:", index);
