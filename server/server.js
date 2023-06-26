@@ -352,9 +352,11 @@ app.get('/captcha/:idJeu', (req, res) => {
   const idJeu = req.params.idJeu;
   let linkParam = req.query.link;
 
-  if (!linkParam) {
-    linkParam = "http://localhost:3000/";
+  if (!idJeu){
+    alert("Pas de jeux selectionné")
+    window.location.href = "http://localhost:3000/";
   }
+  if (!linkParam) {linkParam = "http://localhost:3000/";}
 
 
   // Query to retrieve the singular image with the associated question
@@ -507,26 +509,6 @@ app.get('/captcha/:idJeu', (req, res) => {
     });
   });
 });
-
-
-// Middleware pour vérifier le token d'authentification
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (token == null) {
-    return res.sendStatus(401);
-  }
-  
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
-    }
-    
-    req.user = user;
-    next();
-  });
-}
 
 // Démarrer le serveur
 app.listen(3000, () => {
