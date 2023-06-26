@@ -142,7 +142,7 @@ app.get('/getAll', (req, res) => {
       query = 'SELECT idUtilisateur, Identifiant FROM Utilisateurs ORDER BY Identifiant';
       break;
     case 'jeux d\'image':
-      query = 'SELECT idJeu, Nom FROM jeux ORDER BY Nom';
+      query = 'SELECT idJeu, Nom, idTheme, urlUsage, idUtilisateur FROM jeux ORDER BY Nom';
       break;
     default:
       res.status(400).send('Invalid categorie');
@@ -180,7 +180,6 @@ app.post('/postTheme', (req, res) => {
   });
 });
 
-
 //Route pour crée les jeux.
 app.post('/postForm', upload.fields([
   { name: 'neutralPics', maxCount: 7 },
@@ -193,11 +192,11 @@ app.post('/postForm', upload.fields([
   const themeName = req.body.themeName;
   const singularPicHint = req.body.singularPicHint;
 
-  console.log('Username:', username);
-  console.log('CaptChat Name:', captchatName);
-  console.log('Theme ID:', themeId);
-  console.log('Theme Name:', themeName);
-  console.log('Singular Pic Hint:', singularPicHint);
+  // console.log('Username:', username);
+  // console.log('CaptChat Name:', captchatName);
+  // console.log('Theme ID:', themeId);
+  // console.log('Theme Name:', themeName);
+  // console.log('Singular Pic Hint:', singularPicHint);
 
   const neutralPic = req.files['neutralPics'][0];
   const singularPic = req.files['singularPic'][0];
@@ -212,6 +211,17 @@ app.post('/postForm', upload.fields([
       // Captchat inserted successfully
       console.log('Captchat inserted successfully');
       const captchaId = captchatResult.insertId;
+      const urlUsage = "http://localhost:3000/captcha/" + captchaId;  
+      console.log(urlUsage);
+      const updateUrlQuery = `UPDATE jeux SET urlUsage = '${urlUsage}' WHERE idJeu = ${captchaId}`;
+      connection.query(updateUrlQuery, (error, updateResult) => {
+        if (error) {
+          console.error('Error updating urlUsage:', error);
+          // Handle the error
+          res.sendStatus(500); // Send an error response
+        } else {
+          console.log('urlUsage updated successfully');
+        }});
 
       const neutralZip = new AdmZip(neutralPic.path);
       const neutralEntries = neutralZip.getEntries();
@@ -299,11 +309,10 @@ app.patch('/modifyAll', (req, res) => {
   });
 });
 
-
-
 app.delete('/deleteAll', (req, res) => {
   const { categorie, id } = req.query;
   let deleteQuery = '';
+  let deleteImagesQuery = '';
 
   switch (categorie) {
     case 'artistes':
@@ -314,6 +323,7 @@ app.delete('/deleteAll', (req, res) => {
       break;
     case 'jeux d\'image':
       deleteQuery = 'DELETE FROM jeux WHERE idJeu = ?';
+      deleteImagesQuery = 'DELETE FROM images WHERE idJeu = ?'; // Query to delete associated images
       break;
     default:
       return res.status(400).send('Invalid categorie');
@@ -325,14 +335,27 @@ app.delete('/deleteAll', (req, res) => {
       return res.status(500).send('Internal Server Error');
     }
 
-    res.send(categorie + 'deleted successfully');
+    if (categorie === 'jeux d\'image') {
+      connection.query(deleteImagesQuery, [id], (err, result) => {
+        if (err) {
+          console.error('Error executing SQL query:', err);
+          return res.status(500).send('Internal Server Error');
+        }
+      });
+    }
+
+    res.send(categorie + ' deleted successfully');
   });
 });
 
-
 app.get('/captcha/:idJeu', (req, res) => {
   const idJeu = req.params.idJeu;
-  const linkParam = req.query.link;
+  let linkParam = req.query.link;
+
+  if (!linkParam) {
+    linkParam = "http://localhost:3000/";
+  }
+
 
   // Query to retrieve the singular image with the associated question
   const singularQuery = `SELECT NomIMG, QuestionAssociee FROM images WHERE idJeu = ${idJeu} AND typeIMG = 1 LIMIT 1`;
@@ -484,9 +507,6 @@ app.get('/captcha/:idJeu', (req, res) => {
     });
   });
 });
-
-
-
 
 
 // Middleware pour vérifier le token d'authentification

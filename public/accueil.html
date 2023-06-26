@@ -23,8 +23,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Login Successful</h1>
-    <p>Welcome to the member's area!</p>
+    <h1>Cap-Chat</h1>
+    <p>Bienvenu dans la page de cap-chat</p>
     <p id="demo"></p>
     <div class="btn-group">
       <button type="button" class="btn btn-primary" onclick="getAll('theme')">Voir les thèmes</button>
@@ -149,7 +149,6 @@
     xhttp.send(data);
 }
 
-
     function toggleThemeForm() {
       if (themeForm.style.display === 'block') {
         themeForm.style.display = 'none';
@@ -182,7 +181,8 @@
     console.log('New theme:', themeInput);
     themeForm.style.display = 'none'; // Hide the form after confirming
 });
-    function getAll(categorie) {
+    
+  function getAll(categorie) {
       formContainer.style.display = "none";
       var xhttp = new XMLHttpRequest();
       var url = `http://localhost:3000/getAll?categorie=${categorie}`;
@@ -194,33 +194,59 @@
             var response = JSON.parse(this.responseText);
             var contentContainer = document.getElementById("content");
             // Generate table HTML
-            var tableHTML = '<table class="table"><thead><tr><th>ID</th><th>' + categorie + '</th><th>Actions</th></tr></thead><tbody>';
-              for (var i = 0; i < response.length; i++) {
-                var item = response[i];
-                var itemId, itemName;
-                var addThemeButton = document.getElementById('addTheme');
-                if (categorie === 'artistes') {
-                  itemId = item.idUtilisateur;
-                  itemName = item.Identifiant;
-                  addThemeButton.style.display = 'none';
-                } else if (categorie === 'jeux d\'image') {
-                  itemId = item.idJeu;
-                  itemName = item.Nom;
-                  addThemeButton.style.display = 'none';
-                } else if (categorie === 'theme') {
-                  addThemeButton.style.display = 'inline-block';
-                  itemId = item.idTheme;
-                  itemName = item.Nom;
-                }
+            var tableHTML = '<table class="table"><thead><tr><th>ID</th><th>' + categorie + '</th>';
+            // Add additional table headers for "jeux d'image" category
+            if (categorie === "jeux d'image") {
+            tableHTML += '<th>ID Theme</th><th>URL Usage</th><th>ID Artiste</th>';
+            }
+            tableHTML += '<th>Actions</th></tr></thead><tbody>';
+            for (var i = 0; i < response.length; i++) {
+            var item = response[i];
+            var itemId, itemName;
+            var addThemeButton = document.getElementById('addTheme');
 
-                  tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
-                  '<span id="button-container-' + itemId + '">' +
-                    //Replace the ' with \ to avoid it breaking the syntax when the category is sent in the functions
-                    '<img src="img/logo/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
-                    '<img src="img/logo/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
-                  '</span>' +
-                  '</td></tr>';
-                  }
+            if (categorie === 'artistes') {
+            itemId = item.idUtilisateur;
+            itemName = item.Identifiant;
+            addThemeButton.style.display = 'none';
+
+              tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
+              '<span id="button-container-' + itemId + '">' +
+              '<img src="img/logo/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+              '<img src="img/logo/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+              '</span>' +
+              '</td></tr>';
+            } else if (categorie === 'jeux d\'image') {
+            itemId = item.idJeu;
+            itemName = item.Nom;
+            addThemeButton.style.display = 'none';
+
+            // Access additional properties for "jeux d'image" category
+            var idTheme = item.idTheme;
+            var urlUsage = item.urlUsage;
+            var idArtiste = item.idUtilisateur;
+
+            tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td>' +
+            '<td>' + idTheme + '</td><td>' + urlUsage + '</td><td>' + idArtiste + '</td>' +
+            '<td>' +
+            '<span id="button-container-' + itemId + '">' +
+            '<img src="img/logo/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+            '<img src="img/logo/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+            '</span>' +
+            '</td></tr>';
+            } else if (categorie === 'theme') {
+            addThemeButton.style.display = 'inline-block';
+            itemId = item.idTheme;
+            itemName = item.Nom;
+
+            tableHTML += '<tr id="row-' + itemId + '"><td>' + itemId + '</td><td class="item-name">' + itemName + '</td><td>' +
+            '<span id="button-container-' + itemId + '">' +
+            '<img src="img/logo/edit.png" alt="modif" class="action-icon icon-edit" onclick="modifyAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+            '<img src="img/logo/bin.png" alt="supp" class="action-icon icon-delete" onclick="deleteAll(\'' + categorie.replace("'", "\\'") + '\', ' + itemId + ')">' +
+            '</span>' +
+            '</td></tr>';
+            }
+            }
             tableHTML += '</tbody></table>';
 
             contentContainer.innerHTML = tableHTML;
@@ -257,7 +283,7 @@
       if (this.readyState == 4 && this.status == 200) {
         var response = JSON.parse(this.responseText);
         // Handle the response from the server
-        console.log(response);
+        alert("Jeu d'images ajouter avec succès");
       }
     };
 
