@@ -30,6 +30,7 @@ Une série d'images est affichée, et seulement 1 image permet de valider le cap
 On dispose d'un compte a rebours de 30 secondes, qui diminue de 5 secondes a chaque mauvaise image sélectionnée. Lors de la fin de ce compte à rebours, on est redirigé vers la page d'accueil, sinon on est redirigé vers le lien donné dans l'URL.
 Après que le captcha soit ajouté, on peut le tester en saisissant son URL, avec le lien auquel je veux accéder lorsque le captcha est validé.
 Si par exemple, si je veux essayer le captcha N°2 qui me redirigera vers github s'il est validé, mon URL sera le suivant : "http://localhost:3000/captcha/2?link=https://github.com/".
+
 Voici un exemple : 
 ![image](https://github.com/YanisGh/Site-web-generateur-de-Captchas/assets/69716716/600dfc2b-21a1-46dc-8dca-0a52f0ab45b8)
 
