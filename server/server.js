@@ -274,7 +274,6 @@ app.post('/postForm', upload.fields([
   });
 });
 
-
 app.patch('/modifyAll', (req, res) => {
   const { categorie, id, newName } = req.body;
 
@@ -313,17 +312,22 @@ app.delete('/deleteAll', (req, res) => {
   const { categorie, id } = req.query;
   let deleteQuery = '';
   let deleteImagesQuery = '';
+  let deleteJeuxQuery = '';
 
   switch (categorie) {
     case 'artistes':
       deleteQuery = 'DELETE FROM Utilisateurs WHERE idUtilisateur = ?';
+      deleteJeuxQuery = 'DELETE FROM jeux WHERE idUtilisateur = ?'; 
+      deleteImagesQuery = 'DELETE FROM images WHERE idJeu IN (SELECT idJeu FROM jeux WHERE idUtilisateur = ?)';
       break;
     case 'theme':
       deleteQuery = 'DELETE FROM themes WHERE idTheme = ?';
+      deleteImagesQuery = 'DELETE FROM images WHERE idJeu IN (SELECT idJeu FROM jeux WHERE idTheme = ?)';
+      deleteJeuxQuery = 'DELETE FROM jeux WHERE idTheme = ?'; 
       break;
     case 'jeux d\'image':
       deleteQuery = 'DELETE FROM jeux WHERE idJeu = ?';
-      deleteImagesQuery = 'DELETE FROM images WHERE idJeu = ?'; // Query to delete associated images
+      deleteImagesQuery = 'DELETE FROM images WHERE idJeu = ?';
       break;
     default:
       return res.status(400).send('Invalid categorie');
@@ -335,8 +339,15 @@ app.delete('/deleteAll', (req, res) => {
       return res.status(500).send('Internal Server Error');
     }
 
-    if (categorie === 'jeux d\'image') {
+    if (categorie === 'theme' || categorie === 'artistes') {
       connection.query(deleteImagesQuery, [id], (err, result) => {
+        if (err) {
+          console.error('Error executing SQL query:', err);
+          return res.status(500).send('Internal Server Error');
+        }
+      });
+
+      connection.query(deleteJeuxQuery, [id], (err, result) => {
         if (err) {
           console.error('Error executing SQL query:', err);
           return res.status(500).send('Internal Server Error');
@@ -347,6 +358,7 @@ app.delete('/deleteAll', (req, res) => {
     res.send(categorie + ' deleted successfully');
   });
 });
+
 
 app.get('/captcha/:idJeu', (req, res) => {
   const idJeu = req.params.idJeu;
@@ -471,6 +483,7 @@ app.get('/captcha/:idJeu', (req, res) => {
                   imageContainer.innerHTML = '';
                   timerDisplay.textContent = '';
                   thermometerContainer.style.display = 'none';
+                  window.location.href = "http://localhost:3000/"
                 }
 
                 // Calculate the percentage of remaining time
@@ -514,4 +527,3 @@ app.get('/captcha/:idJeu', (req, res) => {
 app.listen(3000, () => {
   console.log('Serveur démarré');
 });
-

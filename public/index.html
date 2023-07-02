@@ -6,8 +6,8 @@
 </head>
 <body>
   <div class="container">
-    <h2>XMLHttpRequest</h2>
-    <p id="demo">AJAX en action.</p>
+    <h2>Cap-Chat</h2>
+    <p id="demo">Connectez vous ou inscrivez vous</p>
     <div class="form-group">
       <input type="text" class="form-control" id="username" placeholder="Username">
     </div>
@@ -27,6 +27,12 @@
     var xhttp = new XMLHttpRequest();
     var username = document.getElementById("username").value;
     var password = document.getElementById("password").value;
+
+    if (username.trim() === '' || password.trim() === '') {
+        alert("Vos logins ne peuvent pas etre vides");
+        return;
+      }
+
     var url = `http://localhost:3000/login?username=${username}&password=${password}`;
     xhttp.open("GET", url, true);
     xhttp.send();
@@ -47,6 +53,12 @@
       var xhttp = new XMLHttpRequest();
       var username = document.getElementById("username").value;
       var password = document.getElementById("password").value;
+
+      if (username.trim() === '' || password.trim() === '') {
+        alert("Vos logins ne peuvent pas etre vides");
+        return;
+      }
+
       var url = `http://localhost:3000/register?username=${username}&password=${password}`;
       xhttp.open("POST", url, true);
       xhttp.send();

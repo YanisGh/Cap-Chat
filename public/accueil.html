@@ -136,6 +136,7 @@
         if (this.status === 200) {
           // Request was successful
           alert("Theme ajouté avec succès !")
+          getAll('theme');
           // You can perform any additional actions here after adding the theme
         } else {
           // Request failed
@@ -389,7 +390,7 @@
 
     function startCaptchaGame() {
     // Redirect to the provided link
-    var link = 'http://localhost:3000/captcha/6?link=http://localhost:3000';
+    var link = 'http://localhost:3000/captcha/2';
     window.location.href = link;
   }
 
