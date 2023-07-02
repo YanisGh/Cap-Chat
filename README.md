@@ -32,7 +32,9 @@ Après que le captcha soit ajouté, on peut le tester en saisissant son URL, ave
 Si par exemple, si je veux essayer le captcha N°2 qui me redirigera vers github s'il est validé, mon URL sera le suivant : "http://localhost:3000/captcha/2?link=https://github.com/".
 
 Voici un exemple : 
+
 ![image](https://github.com/YanisGh/Site-web-generateur-de-Captchas/assets/69716716/600dfc2b-21a1-46dc-8dca-0a52f0ab45b8)
+
 
 
 
